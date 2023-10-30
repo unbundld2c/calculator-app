@@ -66,6 +66,7 @@ export const createVariant = async (req, res) => {
 };
 
 export const returnPrices = async (req, res) => {
+  console.log(productId, "here get price");
   let { productId } = req.body;
   const { client } = await clientProvider.offline.graphqlClient({
     shop: res.locals.user_shop,
