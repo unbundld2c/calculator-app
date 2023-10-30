@@ -45,6 +45,7 @@ export const createVariant = async (req, res) => {
     let options = productData.body.product.options;
     let variantData = {
       price: calculatedPrice,
+      image: imageURL,
     };
     options.forEach((el, ind) => {
       variantData[
@@ -54,7 +55,6 @@ export const createVariant = async (req, res) => {
     let data = await client.post({
       path: `/products/${productId}/variants`,
       data: {
-        id: 8289044136210,
         variant: variantData,
       },
     });
