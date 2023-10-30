@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 
 export const createVariant = async (req, res) => {
   console.log("url hit");
-  let { productId, height, width, imageURL } = req.body;
+  let { productId, height, width } = req.body;
   // console.log(productId, "here");
   console.log(productId);
   let requestedArea = Number(height) * Number(width);
@@ -43,6 +43,7 @@ export const createVariant = async (req, res) => {
     });
 
     let options = productData.body.product.options;
+    let imageURL = productData.body.product.image.src;
     let variantData = {
       price: calculatedPrice,
       image: imageURL,
