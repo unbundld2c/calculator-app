@@ -78,7 +78,7 @@ export const returnPrices = async (req, res) => {
     console.log("calculators all",calculators)
     // filtering out claculator that contains logic for product
     let productCalculator = calculators.find(
-      (calculator) => calculator.products.indexOf(productId) != -1
+      calculator.products.includes(productId);
     );
     console.log("calculators product",productCalculator)
     // getting pricings as per calculator
