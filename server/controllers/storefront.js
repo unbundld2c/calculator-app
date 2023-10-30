@@ -72,13 +72,14 @@ export const returnPrices = async (req, res) => {
     shop: res.locals.user_shop,
   });
   let store = client.session.shop;
+  let productString = `gid://shopify/Product/${productId}`
   try {
     // getting list of all calculators related to store
     let calculators = await Calculator.find({ store: store });
     console.log("calculators all",calculators)
     // filtering out claculator that contains logic for product
     let productCalculator = calculators.find((calculator) =>
-      calculator.products.includes(productId)
+      calculator.products.includes(productString)
     );
     console.log("calculators product",productCalculator)
     // getting pricings as per calculator
