@@ -31,7 +31,7 @@ export const createVariant = async (req, res) => {
       .sort((a, b) => a.area - b.area);
     // filtering price to calcualte
     let filteredPrice = pricing.find((price) => requestedArea <= price.area);
-    let pricePerUnit = filteredPrice.area / Number(filteredPrice._doc.price);
+    let pricePerUnit = Number(filteredPrice._doc.price) / filteredPrice.area;
     let calculatedPrice = requestedArea * pricePerUnit;
 
     // making res request for variant
