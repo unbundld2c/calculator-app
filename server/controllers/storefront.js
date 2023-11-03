@@ -89,7 +89,7 @@ export const returnPrices = async (req, res) => {
       area: price.width * price.height,
       price: price.price,
     }));
-    res.json({ price: priceData, calcualtor: productCalculator }).status(200);
+    res.json({ price: priceData, calculator: productCalculator }).status(200);
   } catch (err) {
     res.json(err.message).status(501);
   }
