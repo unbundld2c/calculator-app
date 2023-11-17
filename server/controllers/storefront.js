@@ -50,7 +50,7 @@ export const createVariant = async (req, res) => {
       inventory_policy: "continue",
     };
     options.forEach((el, ind) => {
-      variantData[`option${ind + 1}`] = `cal-${el.name}`;
+      variantData[`option${ind + 1}`] = `cal-${new mongoose.Types.ObjectId().toString()}`;
     });
     let data = await client.post({
       path: `/products/${productId}/variants`,
