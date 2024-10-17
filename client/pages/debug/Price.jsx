@@ -14,7 +14,7 @@ import {
     Divider,
     Button
 } from "@shopify/polaris";
-import { CirclePlusMinor } from "@shopify/polaris-icons";
+import { PlusCircleIcon } from "@shopify/polaris-icons";
 import { navigate,usePath } from "raviger";
 import React, { useEffect,useState,useCallback } from "react";
 import { getPrice,updatePrice } from "../../helpers/calculator";
@@ -232,7 +232,7 @@ const Price  = () => {
               </LegacyStack>
               <LegacyStack spacing="tight">
                 <div style={{ marginTop: "10px" }}>
-                  <Button icon={CirclePlusMinor}  onClick={priceUpdate}>
+                  <Button icon={PlusCircleIcon}  onClick={priceUpdate}>
                     Add
                   </Button>
                 </div>

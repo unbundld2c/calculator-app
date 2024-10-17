@@ -1,7 +1,7 @@
 import { Router } from "express";
 import clientProvider from "../../../utils/clientProvider.js";
 const proxyRouter = Router();
-import { createVariant, returnPrices } from "../../controllers/storefront.js";
+import { createProductVariant, createVariant, returnPrices } from "../../controllers/storefront.js";
 
 proxyRouter.get("/json", async (req, res) => {
   const { client } = await clientProvider.offline.graphqlClient({
@@ -12,4 +12,5 @@ proxyRouter.get("/json", async (req, res) => {
 
 proxyRouter.post("/create-variant", createVariant);
 proxyRouter.post("/get-price", returnPrices);
+proxyRouter.post("/create-variant-v2", createProductVariant)
 export default proxyRouter;

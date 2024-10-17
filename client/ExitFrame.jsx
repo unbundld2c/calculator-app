@@ -1,4 +1,4 @@
-import { Loading, useAppBridge } from "@shopify/app-bridge-react";
+import { Loading, useAppBridge } from "@shopify/app-bridge/actions";
 import { Redirect } from "@shopify/app-bridge/actions";
 import { useEffect } from "react";
 

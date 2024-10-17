@@ -14,7 +14,8 @@ import { ensureAuthenticatedPartners } from "@shopify/cli-kit/node/session";
 import { renderSelectPrompt } from "@shopify/cli-kit/node/ui";
 import "dotenv/config";
 
-const UpdateAppURLQuery = ` mutation appUpdate($apiKey: String!, $applicationUrl: Url!, $redirectUrlWhitelist: [Url]!) {
+// GraphQL queries and mutations
+const UpdateAppURLQuery = `mutation appUpdate($apiKey: String!, $applicationUrl: Url!, $redirectUrlWhitelist: [Url]!) {
     appUpdate(input: {apiKey: $apiKey, applicationUrl: $applicationUrl, redirectUrlWhitelist: $redirectUrlWhitelist}) {
       userErrors {
         message
@@ -49,6 +50,16 @@ const AllOrganizationsQuery = `
     }
   }`;
 
+// Safe GraphQL request with error handling
+const partnersRequestSafe = async (query, accessToken, variables = {}) => {
+  try {
+    return await partnersRequest(query, accessToken, variables);
+  } catch (error) {
+    throw new AbortError(`GraphQL request failed: ${error.message}`);
+  }
+};
+
+// Select organization
 const selectOrg = async (accessToken) => {
   const orgs = await getOrgs(accessToken);
   const org = await selectOrgCLI(orgs);
@@ -56,7 +67,10 @@ const selectOrg = async (accessToken) => {
 };
 
 const getOrgs = async (accessToken) => {
-  const response = await partnersRequest(AllOrganizationsQuery, accessToken);
+  const response = await partnersRequestSafe(
+    AllOrganizationsQuery,
+    accessToken
+  );
   const orgs = response.organizations.nodes;
   if (orgs.length === 0) {
     throw new AbortError(
@@ -84,12 +98,15 @@ const selectOrgCLI = async (orgs) => {
   return orgs.find((org) => org.id === choice);
 };
 
+// Get app details
 const getApp = async (apiKey, accessToken) => {
-  const response = await partnersRequest(FindAppQuery, accessToken, {
+  const response = await partnersRequestSafe(FindAppQuery, accessToken, {
     apiKey,
   });
   return response.app;
 };
+
+// Update app URLs
 const updateDashboardURLs = async (apiKey, appUrl) => {
   const accessToken = await ensureAuthenticatedPartners();
 
@@ -102,27 +119,46 @@ const updateDashboardURLs = async (apiKey, appUrl) => {
     redirectUrlWhitelist: redirectURLs,
   };
 
-  const result = await partnersRequest(UpdateAppURLQuery, accessToken, {
+  const result = await partnersRequestSafe(UpdateAppURLQuery, accessToken.token, {
     apiKey,
     ...urls,
   });
+
   if (result.appUpdate.userErrors.length > 0) {
     const errors = result.appUpdate.userErrors
       .map((error) => error.message)
       .join(", ");
-
     throw new AbortError(errors);
   }
 };
 
-console.warn("--> This is for use in DEV mode only");
-console.log("--> Fetching Access Tokens");
-const accessToken = await ensureAuthenticatedPartners();
-console.log("--> Fetching Orgs");
-await selectOrg(accessToken);
-console.log("--> Fetching App Data");
-const app = await getApp(process.env.SHOPIFY_API_KEY, accessToken);
-console.log("--> Updating URLs");
-await updateDashboardURLs(app.apiKey, process.env.SHOPIFY_APP_URL);
-console.log("--> URLs updated. Please update GDPR and Proxy routes manually");
-console.log("--> Done");
+// Main script wrapped in IIFE
+(async () => {
+  try {
+    // Check for environment variables
+    if (!process.env.SHOPIFY_API_KEY || !process.env.SHOPIFY_APP_URL) {
+      throw new AbortError(
+        "Missing SHOPIFY_API_KEY or SHOPIFY_APP_URL in the environment."
+      );
+    }
+
+    console.warn("--> This is for use in DEV mode only");
+    console.log("--> Fetching Access Tokens");
+    const accessToken = await ensureAuthenticatedPartners();
+    // console.log("Access Token:", accessToken.token); // Log the token
+
+    console.log("--> Fetching Orgs");
+    await selectOrg(accessToken.token);
+
+    console.log("--> Fetching App Data");
+    const app = await getApp(process.env.SHOPIFY_API_KEY, accessToken.token);
+
+    console.log("--> Updating URLs");
+    await updateDashboardURLs(app.apiKey, process.env.SHOPIFY_APP_URL);
+
+    console.log("--> URLs updated. Please update GDPR and Proxy routes manually");
+    console.log("--> Done");
+  } catch (error) {
+    console.error("Error occurred:", error.message);
+  }
+})();
