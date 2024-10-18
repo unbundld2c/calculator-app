@@ -1,4 +1,4 @@
-import { Provider } from "@shopify/app-bridge/actions";
+import { Provider } from "@shopify/app-bridge-react";
 import { Layout, Page, Spinner } from "@shopify/polaris";
 import { useNavigate, usePath, useQueryParams } from "raviger";
 import { useEffect, useMemo, useState } from "react";

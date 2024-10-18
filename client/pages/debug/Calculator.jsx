@@ -16,8 +16,8 @@ import {
   Toast,
   TextField,
 } from "@shopify/polaris";
-import { Provider, ResourcePicker } from "@shopify/app-bridge/actions";
-import { ProductAddIcon } from "@shopify/polaris-icons";
+import { Provider, ResourcePicker } from "@shopify/app-bridge-react";
+import { ProductsMajor } from "@shopify/polaris-icons";
 import { navigate, usePath } from "raviger";
 import {
   getcalculator,
@@ -348,7 +348,7 @@ const Calculator = () => {
                   image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
                   action={{
                     content: "Add Product",
-                    icon: ProductAddIcon,
+                    icon: ProductsMajor,
                     onAction: () => {
                       setOpen(true);
                     },
@@ -393,7 +393,7 @@ const Calculator = () => {
                   image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
                   action={{
                     content: "Add Pricing",
-                    icon: ProductAddIcon,
+                    icon: ProductsMajor,
                     onAction: () => {
                       setPriceModal(true);
                     },

@@ -1,6 +1,6 @@
 import useFetch from "../../hooks/useFetch";
 import {
-  BlockStack,
+  VerticalStack,
   Card,
   DataTable,
   Layout,
@@ -53,7 +53,7 @@ const ActiveWebhooks = () => {
           </Layout.Section>
           <Layout.Section>
             <Card>
-              <BlockStack gap="2">
+              <VerticalStack gap="2">
                 <Text as="h2" variant="headingMd">
                   Note
                 </Text>
@@ -64,7 +64,7 @@ const ActiveWebhooks = () => {
                   URL (happens usually during dev when using ngrok), you need to
                   go through the auth process again.
                 </Text>
-              </BlockStack>
+              </VerticalStack>
             </Card>
           </Layout.Section>
         </Layout>

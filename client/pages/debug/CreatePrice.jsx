@@ -24,10 +24,10 @@ import {
   Spinner,
 } from "@shopify/polaris";
 import {
-  CashDollarIcon,
-  PlusCircleIcon,
-  DeleteIcon,
-  NoteAddIcon
+  CashDollarMajor,
+  CirclePlusMajor,
+  DeleteMajor,
+  NoteMajor
 } from "@shopify/polaris-icons";
 
 const CreatePrice = () => {
@@ -144,7 +144,7 @@ const CreatePrice = () => {
         source={
           validImageTypes.includes(file.type)
             ? window.URL.createObjectURL(file)
-            : NoteAddIcon
+            : NoteMajor
         }
       />
       <div>
@@ -332,7 +332,7 @@ const CreatePrice = () => {
               </LegacyStack>
               <LegacyStack spacing="tight">
                 <div style={{ marginTop: "10px" }}>
-                  <Button icon={PlusCircleIcon} onClick={priceUpdate}>
+                  <Button icon={CirclePlusMajor} onClick={priceUpdate}>
                     Add
                   </Button>
                 </div>
@@ -346,7 +346,7 @@ const CreatePrice = () => {
               heading="Create Pricing Option For Calculator"
               action={{
                 content: "Add Pricing",
-                icon: CashDollarIcon,
+                icon: CashDollarMajor,
                 onAction: () => {
                   setOpen(true);
                 },

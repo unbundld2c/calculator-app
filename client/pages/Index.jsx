@@ -1,10 +1,10 @@
 import { useAppBridge } from "@shopify/app-bridge-react";
-import { Redirect } from "@shopify/app-bridge/actions";
 import { EmptyState, Frame, Layout, Page, Loading } from "@shopify/polaris";
 import { navigate } from "raviger";
 import React, { useEffect, useState } from "react";
 import { countCalculator, countPricing } from "../helpers/calculator";
 import useFetch from "../hooks/useFetch";
+import { Redirect } from "@shopify/app-bridge/actions";
 
 const HomePage = () => {
   const fetch = useFetch();

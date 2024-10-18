@@ -12,7 +12,7 @@ import {
   Modal,
   TextContainer,
 } from "@shopify/polaris";
-import { ProductIcon, EditIcon } from "@shopify/polaris-icons";
+import { ProductsMajor, EditMajor } from "@shopify/polaris-icons";
 import { navigate } from "raviger";
 import { Page } from "@shopify/polaris";
 import useFetch from "../../hooks/useFetch";
@@ -73,14 +73,14 @@ const Calculators = () => {
         </Text>
       </IndexTable.Cell>
       <IndexTable.Cell>
-        <Badge icon={ProductIcon}>{products.length}</Badge>
+        <Badge icon={ProductsMajor}>{products.length}</Badge>
       </IndexTable.Cell>
       <IndexTable.Cell>
         <Text as="span" alignment="end">
           <Button
             variant="tertiary"
             onClick={() => navigate(`/debug/calculators/calc-${_id}`)}
-            icon={EditIcon}
+            icon={EditMajor}
           />
         </Text>
       </IndexTable.Cell>
