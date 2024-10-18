@@ -16,8 +16,8 @@ import {
   Toast,
   TextField,
 } from "@shopify/polaris";
-import { Provider, ResourcePicker } from "@shopify/app-bridge/actions";
-import { ProductAddIcon } from "@shopify/polaris-icons";
+import { ResourcePicker } from "@shopify/app-bridge-react";
+import { AddProductMajor } from "@shopify/polaris-icons";
 import { navigate, usePath } from "raviger";
 import {
   getcalculator,
@@ -242,16 +242,14 @@ const Calculator = () => {
       ]}
     >
       <Frame>
-        <Provider>
-          <ResourcePicker
-            resourceType="Product"
-            open={open}
-            onSelection={handleSelection}
-            onCancel={(payload) => setOpen(false)}
-            showVariants={false}
-            initialSelectionIds={intialSelection}
-          />
-        </Provider>
+        <ResourcePicker
+          resourceType="Product"
+          open={open}
+          onSelection={handleSelection}
+          onCancel={(payload) => setOpen(false)}
+          showVariants={false}
+          initialSelectionIds={intialSelection}
+        />
         <Modal
           open={priceModal}
           onClose={() => setPriceModal(false)}
@@ -348,7 +346,7 @@ const Calculator = () => {
                   image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
                   action={{
                     content: "Add Product",
-                    icon: ProductAddIcon,
+                    icon: AddProductMajor,
                     onAction: () => {
                       setOpen(true);
                     },
@@ -393,7 +391,7 @@ const Calculator = () => {
                   image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
                   action={{
                     content: "Add Pricing",
-                    icon: ProductAddIcon,
+                    icon: AddProductMajor,
                     onAction: () => {
                       setPriceModal(true);
                     },
