@@ -11,7 +11,7 @@ import {
   Modal,
   TextContainer,
 } from "@shopify/polaris";
-import { EditMajor } from "@shopify/polaris-icons";
+import { EditIcon } from "@shopify/polaris-icons";
 import { navigate } from "raviger";
 import React, { useCallback, useEffect, useState } from "react";
 import useFetch from "../../hooks/useFetch";
@@ -78,7 +78,7 @@ const Prices = () => {
           <Button
             variant="tertiary"
             onClick={() => navigate(`/debug/prices/price-${_id}`)}
-            icon={EditMajor}
+            icon={EditIcon}
           />
         </Text>
       </IndexTable.Cell>

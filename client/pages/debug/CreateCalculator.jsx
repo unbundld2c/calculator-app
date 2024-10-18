@@ -16,8 +16,8 @@ import {
   ChoiceList,
 } from "@shopify/polaris";
 import { navigate } from "raviger";
-import { AddProductMajor, CashDollarMinor } from "@shopify/polaris-icons";
-import { ResourcePicker } from "@shopify/app-bridge-react";
+import { ProductAddIcon, CashDollarIcon } from "@shopify/polaris-icons";
+import { ResourcePicker } from "@shopify/app-bridge/actions";
 import { saveCalculator, getPricing } from "../../helpers/calculator";
 import useFetch from "../../hooks/useFetch";
 
@@ -251,7 +251,7 @@ const CreateCalculator = () => {
                   image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
                   action={{
                     content: "Add Product",
-                    icon: AddProductMajor,
+                    icon: ProductAddIcon,
                     onAction: () => {
                       setOpen(true);
                     },
@@ -288,7 +288,7 @@ const CreateCalculator = () => {
                   image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
                   action={{
                     content: "Add Pricing",
-                    icon: CashDollarMinor,
+                    icon: CashDollarIcon,
                     onAction: () => {
                       setPriceModal(true);
                     },
