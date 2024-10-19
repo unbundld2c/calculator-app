@@ -345,7 +345,7 @@ export const returnPrices = async (req, res) => {
 export const createProductVariant = async (req, res) => {
   console.log("URL hit with GraphQL", req.body);
 
-  const { productId, height, width, color, price } = req.body;
+  const { productId, height, width, color } = req.body;
 
   if (!productId || !height || !width) {
     return res
@@ -354,39 +354,34 @@ export const createProductVariant = async (req, res) => {
   }
 
   try {
-    // Create GraphQL client for offline access
-    const { client: graphqlClient } =
-      await clientProvider.offline.graphqlClient({
-        shop: res.locals.user_shop,
-      });
+    // Create REST client for offline access
+    const { client: restClient } = await clientProvider.offline.restClient({
+      shop: res.locals.user_shop,
+    });
 
-    // Fetch product details using GraphQL
-    const productData = await graphqlClient.request(`
-      query {
-        product(id: "gid://shopify/Product/${productId}") {
-          id
-          title
-          options {
-            name
-            values
-          }
-          images(first: 1) {
-            edges {
-              node {
-                src
-              }
-            }
-          }
-        }
-      }
-    `);
+    // Fetch product details using REST API
+    const productData = await restClient.get({
+      path: `/products/${productId}`,
+    });
 
-    const product = productData.product;
+    const product = productData.body.product;
     if (!product) return res.status(404).json({ error: "Product not found" });
 
-    const productOptions = product.options;
+    let productOptions = product.options;
 
-    // Calculate requested area (height * width)
+    // Ensure "Size" exists as one of the options
+    const sizeOption = productOptions.find(
+      (option) => option.name.toLowerCase() === "size"
+    );
+    if (!sizeOption) {
+      // Add the "Size" option to the product if it doesn't exist
+      productOptions.push({
+        name: "Size",
+        values: [],
+      });
+    }
+
+    // Calculate the requested area
     const requestedArea = Number(height) * Number(width);
 
     // Retrieve pricing logic related to the product (custom logic)
@@ -415,58 +410,35 @@ export const createProductVariant = async (req, res) => {
 
     // Calculate price based on area
     let filteredPrice = pricing.find((price) => requestedArea <= price.area);
-    let pricePerUnit = Number(filteredPrice.price) / filteredPrice.area;
+    let pricePerUnit = Number(filteredPrice._doc.price) / filteredPrice.area;
     let calculatedPrice = requestedArea * pricePerUnit;
 
-    // Prepare variant options dynamically
-    const variantOptions = productOptions.map((option) => {
-      if (option.name.toLowerCase() === "color" && color) {
-        return color; // Use provided color if available
-      }
-      return `cal-${new mongoose.Types.ObjectId().toString()}`; // Generate unique option value for others
+    let variantData = {
+      price: String(calculatedPrice),
+      inventory_policy: "continue",
+      productId: `gid://shopify/Product/${productId}`,
+      option1: color,
+      option2: `cal-${new mongoose.Types.ObjectId().toString()}`,
+    };
+
+    console.log("Variant data to be created:", variantData);
+
+    // Create the variant via REST API
+    let data = await restClient.post({
+      path: `/products/${productId}/variants`,
+      data: {
+        variant: variantData,
+      },
     });
 
-    console.log("The new variant options:", variantOptions);
-
-    // Create product variant using GraphQL mutation
-    const variantResponse = await graphqlClient.request(
-      `mutation createProductVariant($input: ProductVariantInput!) {
-        productVariantCreate(input: $input) {
-          productVariant {
-            id
-            title
-            price
-            inventoryPolicy
-          }
-          userErrors {
-            field
-            message
-          }
-        }
-      }
-      `,
-      {
-        input: {
-          price: String(calculatedPrice),
-          inventoryPolicy: "CONTINUE",
-          productId: `gid://shopify/Product/${productId}`,
-          options: variantOptions,
-        },
-      }
-    );
-
-    const variantData = variantResponse.data.productVariantCreate.productVariant;
-
-    if (variantResponse.data.productVariantCreate.userErrors.length > 0) {
+    if (!data.body.variant) {
       return res.status(400).json({
         error: "Failed to create variant",
-        details: variantResponse.data.productVariantCreate.userErrors,
+        details: data.body.errors,
       });
     }
 
-    // Send back the created variant's ID
-    const variantId = variantData.id.split("/ProductVariant/")[1];
-    res.status(201).json({ variantId });
+    res.status(201).json(data.body.variant);
   } catch (err) {
     console.error("Error creating product variant:", err);
     if (err.body) {
