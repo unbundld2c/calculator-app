@@ -115,7 +115,6 @@ import mongoose from "mongoose";
 //   }
 // };
 
-
 export const createVariant = async (req, res) => {
   console.log("url hit");
   let { productId, height, width } = req.body;
@@ -131,9 +130,13 @@ export const createVariant = async (req, res) => {
     // getting list of all calculators related to store
     let calculators = await Calculator.find({ store: store });
     // filtering out claculator that contains logic for product
-    let productCalculator = calculators.find((calculator) =>
-      calculator.products.join(",").includes(productId)
-    );
+    let productCalculator = calculators.find((calculator) => {
+      const productString = `gid://shopify/Product/${productId}`;
+      return (
+        calculator.products.includes(productId) ||
+        calculator.products.includes(productString)
+      );
+    });
     // getting pricings as per calculator
     let { pricing } = await Price.findById(productCalculator.price);
     // sorting pricing
@@ -164,7 +167,8 @@ export const createVariant = async (req, res) => {
       inventory_policy: "continue",
     };
     options.forEach((el, ind) => {
-      variantData[`option${ind + 1}`] = `cal-${new mongoose.Types.ObjectId().toString()}`;
+      variantData[`option${ind + 1}`] =
+        `cal-${new mongoose.Types.ObjectId().toString()}`;
     });
     let data = await client.post({
       path: `/products/${productId}/variants`,
@@ -177,7 +181,6 @@ export const createVariant = async (req, res) => {
     res.json(err.message).status(501);
   }
 };
-
 
 export const returnPrices = async (req, res) => {
   let { productId } = req.body;
@@ -233,6 +236,112 @@ export const returnPrices = async (req, res) => {
   }
 };
 
+// export const createProductVariant = async (req, res) => {
+//   console.log("URL hit with GraphQL", req.body);
+
+//   const { productId, height, width, color, price } = req.body;
+
+//   if (!productId || !height || !width) {
+//     return res
+//       .status(400)
+//       .json({ error: "Missing required fields: productId, height, width" });
+//   }
+
+//   try {
+//     const { client: graphqlClient } =
+//       await clientProvider.offline.graphqlClient({
+//         shop: res.locals.user_shop,
+//       });
+
+//     // Retrieve product options from Shopify using GraphQL
+//     const productData = await graphqlClient.request(
+//       `{
+//         product(id: "gid://shopify/Product/${productId}") {
+//           id
+//           title
+//           options {
+//             name
+//             values
+//           }
+//           images(first: 1) {
+//             edges {
+//               node {
+//                 src
+//               }
+//             }
+//           }
+//         }
+//       }`
+//     );
+
+//     const product = productData.data.product;
+//     if (!product) return res.status(404).json({ error: "Product not found" });
+
+//     const productOptions = product.options;
+//     const imageURL = product.images.edges[0]?.node.src; // Get the product's default image
+
+//     // Prepare dynamic variant options (color, etc.)
+//     const variantOptions = productOptions.map((option) => {
+//       if (option.name.toLowerCase() === "color" && color) {
+//         return color; // Use the color from the request
+//       }
+//       return `cal-${new mongoose.Types.ObjectId().toString()}`; // Generate unique values for other options
+//     });
+
+//     console.log("The new variant options", variantOptions);
+
+//     // Execute the GraphQL mutation
+//     const variantResponse = await graphqlClient.request(
+//       `mutation createProductVariant($input: ProductVariantInput!) {
+//         productVariantCreate(input: $input) {
+//           productVariant {
+//             id
+//             title
+//             price
+//             inventoryPolicy
+//           }
+//           userErrors {
+//             field
+//             message
+//           }
+//         }
+//       }
+//     `,
+//       {
+//         variables: {
+//           input: {
+//             price: String(price),
+//             inventoryPolicy: "CONTINUE",
+//             productId: `gid://shopify/Product/${productId}`,
+//             options: variantOptions,
+//             // imageSrc: imageURL, // Set the image if available
+//           },
+//         },
+//       }
+//     );
+
+//     const variantData =
+//       variantResponse.data.productVariantCreate.productVariant;
+
+//     if (variantResponse.data.productVariantCreate.userErrors.length > 0) {
+//       return res.status(400).json({
+//         error: "Failed to create variant",
+//         details: variantResponse.data.productVariantCreate.userErrors,
+//       });
+//     }
+
+//     // Send back the created variant's ID
+//     const variantId = variantData.id.split("/ProductVariant/")[1];
+//     res.status(201).json({ variantId }); // Return the variant ID
+//   } catch (err) {
+//     console.error("Error creating product variant:", err);
+//     if (err.body) {
+//       console.error("GraphQL Errors:", err.body.errors);
+//     }
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
 export const createProductVariant = async (req, res) => {
   console.log("URL hit with GraphQL", req.body);
 
@@ -245,14 +354,15 @@ export const createProductVariant = async (req, res) => {
   }
 
   try {
+    // Create GraphQL client for offline access
     const { client: graphqlClient } =
       await clientProvider.offline.graphqlClient({
         shop: res.locals.user_shop,
       });
 
-    // Retrieve product options from Shopify using GraphQL
-    const productData = await graphqlClient.request(
-      `{
+    // Fetch product details using GraphQL
+    const productData = await graphqlClient.request(`
+      query {
         product(id: "gid://shopify/Product/${productId}") {
           id
           title
@@ -268,26 +378,57 @@ export const createProductVariant = async (req, res) => {
             }
           }
         }
-      }`
-    );
+      }
+    `);
 
-    const product = productData.data.product;
+    const product = productData.product;
     if (!product) return res.status(404).json({ error: "Product not found" });
 
     const productOptions = product.options;
-    const imageURL = product.images.edges[0]?.node.src; // Get the product's default image
 
-    // Prepare dynamic variant options (color, etc.)
-    const variantOptions = productOptions.map((option) => {
-      if (option.name.toLowerCase() === "color" && color) {
-        return color; // Use the color from the request
-      }
-      return `cal-${new mongoose.Types.ObjectId().toString()}`; // Generate unique values for other options
+    // Calculate requested area (height * width)
+    const requestedArea = Number(height) * Number(width);
+
+    // Retrieve pricing logic related to the product (custom logic)
+    let calculators = await Calculator.find({ store: res.locals.user_shop });
+    let productCalculator = calculators.find((calculator) => {
+      const productString = `gid://shopify/Product/${productId}`;
+      return (
+        calculator.products.includes(productId) ||
+        calculator.products.includes(productString)
+      );
     });
 
-    console.log("The new variant options", variantOptions);
+    if (!productCalculator) {
+      return res
+        .status(404)
+        .json({ error: "Pricing logic not found for the product" });
+    }
 
-    // Execute the GraphQL mutation
+    let { pricing } = await Price.findById(productCalculator.price);
+    pricing = pricing
+      .map((price) => ({
+        area: Number(price.height) * Number(price.width),
+        ...price,
+      }))
+      .sort((a, b) => a.area - b.area);
+
+    // Calculate price based on area
+    let filteredPrice = pricing.find((price) => requestedArea <= price.area);
+    let pricePerUnit = Number(filteredPrice.price) / filteredPrice.area;
+    let calculatedPrice = requestedArea * pricePerUnit;
+
+    // Prepare variant options dynamically
+    const variantOptions = productOptions.map((option) => {
+      if (option.name.toLowerCase() === "color" && color) {
+        return color; // Use provided color if available
+      }
+      return `cal-${new mongoose.Types.ObjectId().toString()}`; // Generate unique option value for others
+    });
+
+    console.log("The new variant options:", variantOptions);
+
+    // Create product variant using GraphQL mutation
     const variantResponse = await graphqlClient.request(
       `mutation createProductVariant($input: ProductVariantInput!) {
         productVariantCreate(input: $input) {
@@ -303,22 +444,18 @@ export const createProductVariant = async (req, res) => {
           }
         }
       }
-    `,
+      `,
       {
-        variables: {
-          input: {
-            price: String(price),
-            inventoryPolicy: "CONTINUE",
-            productId: `gid://shopify/Product/${productId}`,
-            options: variantOptions,
-            // imageSrc: imageURL, // Set the image if available
-          },
+        input: {
+          price: String(calculatedPrice),
+          inventoryPolicy: "CONTINUE",
+          productId: `gid://shopify/Product/${productId}`,
+          options: variantOptions,
         },
       }
     );
 
-    const variantData =
-      variantResponse.data.productVariantCreate.productVariant;
+    const variantData = variantResponse.data.productVariantCreate.productVariant;
 
     if (variantResponse.data.productVariantCreate.userErrors.length > 0) {
       return res.status(400).json({
@@ -329,7 +466,7 @@ export const createProductVariant = async (req, res) => {
 
     // Send back the created variant's ID
     const variantId = variantData.id.split("/ProductVariant/")[1];
-    res.status(201).json({ variantId }); // Return the variant ID
+    res.status(201).json({ variantId });
   } catch (err) {
     console.error("Error creating product variant:", err);
     if (err.body) {
